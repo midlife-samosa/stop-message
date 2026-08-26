@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Undelivered</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4B5A60">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#4B5A60;
+    --bg-deep:#394548;
+    --card:#F2EBDA;
+    --card-2:#E9E0CB;
+    --ink:#2E2A24;
+    --ink-soft:#655F53;
+    --invert:#F2EBDA;
+    --invert-soft:rgba(242,235,218,0.72);
+    --brass:#C17D3F;
+    --brass-deep:#9C6230;
+    --sage:#6F9873;
+    --sage-deep:#527457;
+    --line-dusk:rgba(242,235,218,0.18);
+    --line-card:rgba(46,42,36,0.12);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--invert);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  button{ font-family:inherit; cursor:pointer; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{
+    outline:2px solid var(--brass); outline-offset:2px;
+  }
+
+  #loading{
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; color:var(--invert-soft); font-size:15px;
+  }
+
+  #app{ max-width:460px; margin:0 auto; padding:20px 16px 60px; }
+
+  header{ position:relative; padding-top:6px; text-align:center; }
+  .gear{
+    position:absolute; top:0; right:0;
+    width:38px; height:38px; border-radius:50%;
+    background:transparent; border:1px solid var(--line-dusk);
+    color:var(--invert-soft); font-size:18px; display:flex; align-items:center; justify-content:center;
+  }
+  .gear:active{ background:rgba(242,235,218,0.08); }
+
+  header h1{ font-size:26px; font-weight:600; margin:2px 0 4px; letter-spacing:0.2px; }
+  header .subtitle{ font-size:13.5px; color:var(--invert-soft); margin:0 auto 22px; max-width:300px; line-height:1.5; }
+
+  .postmark-wrap{ display:flex; flex-direction:column; align-items:center; margin-bottom:8px; }
+  .postmark-ring{
+    position:relative; width:148px; height:148px; border-radius:50%;
+    background:var(--brass);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 18px rgba(0,0,0,0.22);
+  }
+  .perf-dot{
+    position:absolute; top:50%; left:50%; width:9px; height:9px; margin:-4.5px;
+    border-radius:50%; background:var(--bg);
+  }
+  .postmark-inner{ text-align:center; }
+  .postmark-number{ font-family:'Fraunces', serif; font-size:44px; font-weight:600; line-height:1; color:var(--invert); }
+  .postmark-label{ font-size:11px; text-transform:uppercase; letter-spacing:1.2px; color:var(--invert); opacity:0.85; margin-top:2px; }
+  .streak-caption{ font-size:12.5px; color:var(--invert-soft); margin-top:10px; }
+
+  .tabs{ display:flex; gap:6px; background:rgba(255,255,255,0.06); padding:5px; border-radius:999px; margin:22px 0 18px; }
+  .tab{
+    flex:1; border:none; background:transparent; color:var(--invert-soft);
+    padding:9px 0; border-radius:999px; font-size:13.5px; font-weight:500;
+  }
+  .tab.active{ background:var(--brass); color:var(--invert); }
+
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .card{
+    background:var(--card); color:var(--ink); border-radius:var(--radius);
+    padding:18px; box-shadow:0 8px 20px rgba(0,0,0,0.18);
+  }
+  .card + .card{ margin-top:14px; }
+  .card h2{ font-size:17px; font-weight:600; margin:0 0 4px; }
+  .card .hint{ font-size:12.5px; color:var(--ink-soft); margin:0 0 12px; line-height:1.5; }
+
+  textarea{
+    width:100%; min-height:120px; resize:vertical;
+    border:1px solid var(--line-card); border-radius:10px; padding:12px;
+    font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--card-2);
+    line-height:1.5;
+  }
+  .pause-note{ font-size:12px; color:var(--ink-soft); margin:8px 0 14px; }
+  .pause-note button{ background:none; border:none; color:var(--brass-deep); text-decoration:underline; font-size:12px; padding:0; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    border:none; border-radius:10px; padding:12px 18px; font-size:14.5px; font-weight:600;
+    width:100%;
+  }
+  .btn-primary{ background:var(--brass); color:var(--invert); }
+  .btn-primary:disabled{ background:#D8C6AD; color:#8c8069; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1px solid var(--line-card); }
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .btn{ width:auto; flex:1; }
+
+  .stat-row{ display:flex; gap:10px; margin-bottom:14px; }
+  .stat{ flex:1; background:var(--card-2); border-radius:12px; padding:12px 10px; text-align:center; }
+  .stat .num{ font-family:'IBM Plex Mono', monospace; font-size:20px; font-weight:500; }
+  .stat .lbl{ font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.6px; margin-top:2px; }
+
+  .empty{ font-size:13.5px; color:var(--ink-soft); text-align:center; padding:18px 6px; line-height:1.6; }
+
+  .letter-card{
+    background:var(--card-2); border-radius:10px; padding:12px 14px; margin-bottom:12px;
+    max-height:150px; overflow-y:auto;
+  }
+  .letter-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .letter-date{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-soft); }
+  .badge{ font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:0.5px; }
+  .badge-held{ background:var(--sage); color:#fff; }
+  .badge-sent{ background:var(--brass-deep); color:#fff; }
+  .letter-text{ font-size:13.5px; line-height:1.55; margin:0 0 8px; white-space:pre-wrap; }
+  .remove-btn{
+    background:none; border:none; color:#A15347; font-size:11.5px; padding:0; text-decoration:underline;
+  }
+  .remove-btn.small{ font-size:11px; }
+
+  .swipe-line{ font-size:13px; color:var(--ink-soft); margin-bottom:12px; font-family:'IBM Plex Mono', monospace; }
+
+  .add-row{ display:flex; gap:8px; margin-bottom:14px; }
+  .add-row input[type="text"]{
+    flex:1; border:1px solid var(--line-card); border-radius:10px; padding:10px 12px;
+    font-size:13.5px; background:var(--card-2); color:var(--ink);
+  }
+  .add-row select{
+    border:1px solid var(--line-card); border-radius:10px; padding:10px 8px;
+    font-size:13px; background:var(--card-2); color:var(--ink);
+  }
+  .add-row button{
+    background:var(--brass); color:var(--invert); border:none; border-radius:10px; padding:0 16px; font-size:13.5px; font-weight:600;
+  }
+
+  .mute-item{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line-card); }
+  .mute-item:last-child{ border-bottom:none; }
+  .mute-check{ display:flex; align-items:center; gap:10px; font-size:13.5px; }
+  .mute-check input{ width:16px; height:16px; }
+  .mute-platform{ font-size:11px; color:var(--ink-soft); background:var(--card); padding:2px 7px; border-radius:6px; }
+
+  .tip-toggle{ background:none; border:none; color:var(--brass-deep); font-size:12.5px; padding:0; margin-top:10px; text-decoration:underline; }
+  .tip-body{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; margin-top:8px; }
+
+  footer{ text-align:center; font-size:11.5px; color:var(--invert-soft); margin-top:28px; }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,25,27,0.88);
+    display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay-card{
+    background:var(--card); color:var(--ink); border-radius:20px; padding:26px 22px;
+    width:100%; max-width:360px; text-align:center;
+  }
+  .overlay-card.settings-card{ text-align:left; }
+
+  .ring-wrap{ position:relative; width:150px; height:150px; margin:6px auto 18px; }
+  .ring-bg{ stroke:var(--line-card); }
+  .ring-fg{ stroke:var(--sage); transition:stroke-dashoffset 1s linear; }
+  #pauseClock{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:26px; font-weight:500;
+  }
+  #pausePrompt{ font-size:13.5px; color:var(--ink-soft); min-height:40px; line-height:1.5; transition:opacity .3s ease; }
+  .pause-cancel{ background:none; border:none; color:var(--ink-soft); font-size:12px; text-decoration:underline; margin-top:16px; }
+
+  .decision-text{ font-size:13.5px; background:var(--card-2); border-radius:10px; padding:12px; margin:14px 0 18px; max-height:120px; overflow-y:auto; text-align:left; white-space:pre-wrap; }
+
+  .settings-section{ margin-bottom:18px; }
+  .settings-section h3{ font-size:13px; margin:0 0 10px; }
+  .pill-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .pill{ border:1px solid var(--line-card); background:transparent; color:var(--ink); padding:7px 13px; border-radius:999px; font-size:13px; }
+  .pill.selected{ background:var(--brass); color:var(--invert); border-color:var(--brass); }
+  .danger-btn{ background:none; border:1px solid #A15347; color:#A15347; border-radius:10px; padding:9px 14px; font-size:13px; width:100%; }
+  .settings-close{ display:block; margin:18px auto 0; background:none; border:none; color:var(--ink-soft); font-size:13px; text-decoration:underline; }
+
+  #toast{
+    position:fixed; left:50%; bottom:24px; transform:translate(-50%, 20px);
+    background:var(--card); color:var(--ink); padding:11px 18px; border-radius:999px;
+    font-size:13px; box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:60;
+  }
+  #toast.show{ opacity:1; transform:translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div id="loading">Loading your drawer&hellip;</div>
+
+<div id="app" hidden>
+  <header>
+    <button class="gear" id="gearBtn" aria-label="Settings">&#9881;</button>
+    <div class="postmark-wrap">
+      <div class="postmark-ring" id="postmarkRing">
+        <div class="postmark-inner">
+          <div class="postmark-number" id="streakNumber">0</div>
+          <div class="postmark-label">days held</div>
+        </div>
+      </div>
+      <div class="streak-caption" id="streakCaption"></div>
+    </div>
+    <h1>Undelivered</h1>
+    <p class="subtitle">A place to write what you want to say, before you decide to send it.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="write">Write</button>
+    <button class="tab" data-tab="drawer">Drawer</button>
+    <button class="tab" data-tab="shield">Shield</button>
+  </nav>
+
+  <main>
+    <section id="panel-write" class="panel active">
+      <div class="card">
+        <h2>What do you want to say to them?</h2>
+        <p class="hint">Type it here first. Nothing gets sent from this app &mdash; it just gives you somewhere to put it while you decide.</p>
+        <textarea id="writeText" placeholder="Say the whole thing. No one else reads this."></textarea>
+        <p class="pause-note">This will hold for <span id="writePauseLabel">10</span> minutes. <button id="writePauseChange">Change this</button></p>
+        <button class="btn btn-primary" id="writeHold" disabled>Hold this</button>
+      </div>
+    </section>
+
+    <section id="panel-drawer" class="panel">
+      <div class="card">
+        <div class="stat-row">
+          <div class="stat"><div class="num" id="statHeld">0</div><div class="lbl">Held</div></div>
+          <div class="stat"><div class="num" id="statLongest">0</div><div class="lbl">Longest run</div></div>
+          <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Letters</div></div>
+        </div>
+        <div id="drawerList"></div>
+      </div>
+    </section>
+
+    <section id="panel-shield" class="panel">
+      <div class="card">
+        <h2>Swipe guard</h2>
+        <p class="swipe-line" id="swipeStreakLine">0 days since you last redownloaded.</p>
+        <button class="btn btn-ghost" id="swipeStart">I'm thinking about it</button>
+      </div>
+      <div class="card">
+        <h2>Mute list</h2>
+        <p class="hint">This app can't mute anyone on Instagram for you. It can hold your list, so you don't have to think it through when it's hardest to.</p>
+        <div class="add-row">
+          <input type="text" id="shieldName" placeholder="Name or handle">
+          <select id="shieldPlatform">
+            <option>Instagram</option>
+            <option>TikTok</option>
+            <option>Facebook</option>
+            <option>X</option>
+            <option>Other</option>
+          </select>
+          <button id="shieldAdd">Add</button>
+        </div>
+        <div id="muteList"></div>
+        <button class="tip-toggle" id="tipToggle">How to mute</button>
+        <p class="tip-body" id="tipBody" hidden>Open their profile, tap the three-dot menu, then choose Mute or Restrict. On some apps it's under Privacy settings instead.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>Saved privately &mdash; only you can see this.</footer>
+</div>
+
+<div class="overlay" id="pauseOverlay" hidden>
+  <div class="overlay-card">
+    <div id="pauseTimerView">
+      <h2 id="pauseTitle" style="font-size:17px;margin:0 0 14px;">Sit with it for a bit</h2>
+      <div class="ring-wrap">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle class="ring-bg" cx="75" cy="75" r="60" stroke-width="8" fill="none"/>
+          <circle id="pauseRingFg" class="ring-fg" cx="75" cy="75" r="60" stroke-width="8" fill="none" stroke-linecap="round" transform="rotate(-90 75 75)" stroke-dasharray="376.99" stroke-dashoffset="0"/>
+        </svg>
+        <div id="pauseClock">10:00</div>
+      </div>
+      <p id="pausePrompt">Fill a glass of water and drink it slowly.</p>
+      <button class="btn btn-primary" id="pauseSkip" style="margin-top:16px;">I'm ready now</button>
+      <button class="pause-cancel" id="pauseCancel">Cancel, go back</button>
+    </div>
+    <div id="pauseDecision" hidden>
+      <h2 id="decisionTitle" style="font-size:17px;margin:0 0 6px;">Still want to send this?</h2>
+      <div class="decision-text" id="decisionText"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="decisionAct">Send it anyway</button>
+        <button class="btn btn-primary" id="decisionKeep">Keep it here</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsOverlay" hidden>
+  <div class="overlay-card settings-card">
+    <h2 style="font-size:17px;margin:0 0 16px;">Settings</h2>
+    <div class="settings-section">
+      <h3>Write pause length</h3>
+      <div class="pill-group">
+        <button class="pill" data-writepause="5">5 min</button>
+        <button class="pill" data-writepause="10">10 min</button>
+        <button class="pill" data-writepause="30">30 min</button>
+        <button class="pill" data-writepause="60">60 min</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Swipe guard pause length</h3>
+      <div class="pill-group">
+        <button class="pill" data-swipepause="1">1 min</button>
+        <button class="pill" data-swipepause="2">2 min</button>
+        <button class="pill" data-swipepause="5">5 min</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Start over</h3>
+      <button class="danger-btn" id="clearData">Clear all data</button>
+    </div>
+    <button class="settings-close" id="settingsClose">Close</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // Outside Claude, window.storage doesn't exist. This gives the app the
+  // same get/set/delete/list interface, backed by localStorage, so the
+  // rest of the code doesn't need to know which environment it's in.
+  if(!window.storage){
+    const NS = 'undelivered:';
+    function ns(key, shared){ return NS + (shared ? 'shared:' : 'personal:') + key; }
+    window.storage = {
+      async get(key, shared){
+        const v = localStorage.getItem(ns(key, shared));
+        if(v === null) throw new Error('key not found: ' + key);
+        return { key, value: v, shared: !!shared };
+      },
+      async set(key, value, shared){
+        localStorage.setItem(ns(key, shared), value);
+        return { key, value, shared: !!shared };
+      },
+      async delete(key, shared){
+        localStorage.removeItem(ns(key, shared));
+        return { key, deleted: true, shared: !!shared };
+      },
+      async list(prefix, shared){
+        const full = NS + (shared ? 'shared:' : 'personal:') + (prefix || '');
+        const keys = [];
+        for(let i=0;i<localStorage.length;i++){
+          const k = localStorage.key(i);
+          if(k && k.indexOf(full) === 0) keys.push(k.slice(full.length - (prefix||'').length));
+        }
+        return { keys, prefix, shared: !!shared };
+      }
+    };
+  }
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+<script>
+(async function(){
+  const STORAGE_KEY = 'undelivered-app-state-v1';
+
+  const writePrompts = [
+    "Fill a glass of water and drink it slowly.",
+    "Put your phone down and look at something 20 feet away for 20 seconds.",
+    "Text a friend something unrelated \u2014 a meme, a random thought.",
+    "Stand up and stretch your arms overhead.",
+    "Name five things you can see right now.",
+    "Step outside, even just to the doorway.",
+    "Put on one song you actually like.",
+    "Wash your face or brush your teeth.",
+    "Write down one thing you're proud of from today.",
+    "Open a window."
+  ];
+  const swipePrompts = [
+    "What are you hoping to find right now: company, or just quiet?",
+    "This will still be here in a couple of minutes.",
+    "No one's swiping past you while you wait."
+  ];
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function genId(){
+    return (crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+  }
+  function daysSince(iso){
+    if(!iso) return 0;
+    const diff = Date.now() - new Date(iso).getTime();
+    return Math.max(0, Math.floor(diff / 86400000));
+  }
+
+  function defaultState(){
+    return {
+      firstOpenISO: new Date().toISOString(),
+      lastSentISO: null,
+      lastRedownloadISO: null,
+      longestWriteStreak: 0,
+      longestSwipeStreak: 0,
+      writeEntries: [],
+      swipeEntries: [],
+      shieldList: [],
+      settings: { writePauseMin: 10, swipePauseMin: 2 }
+    };
+  }
+
+  let state = null;
+
+  async function persist(){
+    try{
+      await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    }catch(err){ console.error('save failed', err); }
+  }
+  function save(){ persist(); }
+
+  async function loadState(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        state = Object.assign(defaultState(), parsed);
+        state.settings = Object.assign({ writePauseMin:10, swipePauseMin:2 }, parsed.settings || {});
+      } else {
+        state = defaultState();
+        await persist();
+      }
+    } catch(err){
+      state = defaultState();
+      try{ await persist(); }catch(e){}
+    }
+  }
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=> t.classList.remove('show'), 2600);
+  }
+
+  function addPerforation(ringEl, count, radius){
+    for(let i=0;i<count;i++){
+      const angle = (360/count)*i;
+      const dot = document.createElement('div');
+      dot.className = 'perf-dot';
+      dot.style.transform = `rotate(${angle}deg) translate(${radius}px) rotate(${-angle}deg)`;
+      ringEl.appendChild(dot);
+    }
+  }
+
+  function renderHeader(){
+    const days = daysSince(state.lastSentISO || state.firstOpenISO);
+    document.getElementById('streakNumber').textContent = days;
+    const cap = document.getElementById('streakCaption');
+    if(days === 0){
+      cap.textContent = 'Day one starts now.';
+    } else if(state.longestWriteStreak > 0){
+      cap.textContent = `Best so far: ${state.longestWriteStreak} day${state.longestWriteStreak===1?'':'s'}`;
+    } else {
+      cap.textContent = '';
+    }
+  }
+
+  function renderDrawer(){
+    const held = state.writeEntries.filter(e => e.outcome === 'held').length;
+    const total = state.writeEntries.length;
+    document.getElementById('statHeld').textContent = held;
+    document.getElementById('statLongest').textContent = state.longestWriteStreak;
+    document.getElementById('statTotal').textContent = total;
+
+    const list = document.getElementById('drawerList');
+    if(total === 0){
+      list.innerHTML = '<p class="empty">Nothing here yet. When you write something instead of sending it, it lands here.</p>';
+      return;
+    }
+    const sorted = [...state.writeEntries].sort((a,b) => b.ts - a.ts);
+    list.innerHTML = sorted.map((e,i) => {
+      const date = new Date(e.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+      const badgeClass = e.outcome === 'held' ? 'badge-held' : 'badge-sent';
+      const badgeLabel = e.outcome === 'held' ? 'Held' : 'Sent';
+      return `<div class="letter-card" data-id="${e.id}">
+        <div class="letter-top">
+          <span class="letter-date mono">${date}</span>
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+        </div>
+        <p class="letter-text">${esc(e.text)}</p>
+        <button class="remove-btn" data-remove="${e.id}">Remove</button>
+      </div>`;
+    }).join('');
+  }
+
+  function renderShield(){
+    const days = daysSince(state.lastRedownloadISO || state.firstOpenISO);
+    document.getElementById('swipeStreakLine').textContent = `${days} day${days===1?'':'s'} since you last redownloaded.`;
+
+    const list = document.getElementById('muteList');
+    if(state.shieldList.length === 0){
+      list.innerHTML = '<p class="empty">No one on your list yet.</p>';
+      return;
+    }
+    list.innerHTML = state.shieldList.map(item => `
+      <div class="mute-item" data-id="${item.id}">
+        <label class="mute-check">
+          <input type="checkbox" ${item.muted ? 'checked' : ''} data-toggle="${item.id}">
+          <span>${esc(item.name)}</span>
+          <span class="mute-platform">${esc(item.platform)}</span>
+        </label>
+        <button class="remove-btn small" data-removeshield="${item.id}">Remove</button>
+      </div>`).join('');
+  }
+
+  function renderSettingsUI(){
+    document.querySelectorAll('[data-writepause]').forEach(b => {
+      b.classList.toggle('selected', Number(b.dataset.writepause) === state.settings.writePauseMin);
+    });
+    document.querySelectorAll('[data-swipepause]').forEach(b => {
+      b.classList.toggle('selected', Number(b.dataset.swipepause) === state.settings.swipePauseMin);
+    });
+    document.getElementById('writePauseLabel').textContent = state.settings.writePauseMin;
+  }
+
+  function renderAll(){
+    renderHeader();
+    renderDrawer();
+    renderShield();
+    renderSettingsUI();
+  }
+
+  // ---- Pause / decision flow ----
+  let pauseMode = null;
+  let pauseSecondsTotal = 0;
+  let pauseSecondsLeft = 0;
+  let pauseTimerId = null;
+  let promptTimerId = null;
+  let pendingText = '';
+  const CIRC = 2 * Math.PI * 60;
+
+  function renderPauseTime(){
+    const m = Math.floor(pauseSecondsLeft/60);
+    const s = pauseSecondsLeft%60;
+    document.getElementById('pauseClock').textContent = `${m}:${String(s).padStart(2,'0')}`;
+    const pct = pauseSecondsTotal > 0 ? (1 - pauseSecondsLeft/pauseSecondsTotal) : 1;
+    document.getElementById('pauseRingFg').style.strokeDashoffset = CIRC * (1 - pct);
+  }
+
+  function startPause(mode){
+    pauseMode = mode;
+    const mins = mode === 'write' ? state.settings.writePauseMin : state.settings.swipePauseMin;
+    pauseSecondsTotal = mins * 60;
+    pauseSecondsLeft = pauseSecondsTotal;
+    document.getElementById('pauseTitle').textContent = mode === 'write' ? 'Sit with it for a bit' : 'Give it a minute';
+    document.getElementById('pauseOverlay').hidden = false;
+    document.getElementById('pauseTimerView').hidden = false;
+    document.getElementById('pauseDecision').hidden = true;
+    renderPauseTime();
+
+    const prompts = mode === 'write' ? writePrompts : swipePrompts;
+    let pi = 0;
+    const promptEl = document.getElementById('pausePrompt');
+    promptEl.style.opacity = 1;
+    promptEl.textContent = prompts[0];
+    clearInterval(promptTimerId);
+    promptTimerId = setInterval(() => {
+      pi = (pi+1) % prompts.length;
+      promptEl.style.opacity = 0;
+      setTimeout(() => { promptEl.textContent = prompts[pi]; promptEl.style.opacity = 1; }, 300);
+    }, 15000);
+
+    clearInterval(pauseTimerId);
+    pauseTimerId = setInterval(() => {
+      pauseSecondsLeft--;
+      renderPauseTime();
+      if(pauseSecondsLeft <= 0){
+        clearInterval(pauseTimerId);
+        goToDecision();
+      }
+    }, 1000);
+  }
+
+  function goToDecision(){
+    clearInterval(pauseTimerId);
+    clearInterval(promptTimerId);
+    document.getElementById('pauseTimerView').hidden = true;
+    document.getElementById('pauseDecision').hidden = false;
+    if(pauseMode === 'write'){
+      document.getElementById('decisionTitle').textContent = 'Still want to send this?';
+      document.getElementById('decisionText').textContent = pendingText;
+      document.getElementById('decisionText').style.display = 'block';
+      document.getElementById('decisionKeep').textContent = 'Keep it here';
+      document.getElementById('decisionAct').textContent = 'Send it anyway';
+    } else {
+      document.getElementById('decisionTitle').textContent = 'Still thinking about redownloading?';
+      document.getElementById('decisionText').style.display = 'none';
+      document.getElementById('decisionKeep').textContent = 'Not today';
+      document.getElementById('decisionAct').textContent = 'Downloaded it';
+    }
+  }
+
+  function closePauseOverlay(){
+    clearInterval(pauseTimerId);
+    clearInterval(promptTimerId);
+    document.getElementById('pauseOverlay').hidden = true;
+  }
+
+  function handleDecision(action){
+    if(pauseMode === 'write'){
+      const entry = { id: genId(), ts: Date.now(), text: pendingText, outcome: action === 'keep' ? 'held' : 'sent' };
+      state.writeEntries.push(entry);
+      if(action === 'act'){
+        const ended = daysSince(state.lastSentISO || state.firstOpenISO);
+        if(ended > state.longestWriteStreak) state.longestWriteStreak = ended;
+        state.lastSentISO = new Date().toISOString();
+        toast("Logged. Tomorrow's a new count.");
+      } else {
+        toast("Filed away. Nobody read it but you.");
+      }
+      document.getElementById('writeText').value = '';
+      updateWriteButton();
+    } else {
+      const entry = { id: genId(), ts: Date.now(), outcome: action === 'keep' ? 'held' : 'redownloaded' };
+      state.swipeEntries.push(entry);
+      if(action === 'act'){
+        const ended = daysSince(state.lastRedownloadISO || state.firstOpenISO);
+        if(ended > state.longestSwipeStreak) state.longestSwipeStreak = ended;
+        state.lastRedownloadISO = new Date().toISOString();
+        toast("That's allowed. Counting from today.");
+      } else {
+        toast('Not today. Noted.');
+      }
+    }
+    save();
+    closePauseOverlay();
+    renderAll();
+  }
+
+  // ---- Write panel ----
+  const writeTextEl = document.getElementById('writeText');
+  const writeHoldBtn = document.getElementById('writeHold');
+  function updateWriteButton(){
+    writeHoldBtn.disabled = writeTextEl.value.trim().length === 0;
+  }
+  writeTextEl.addEventListener('input', updateWriteButton);
+  writeHoldBtn.addEventListener('click', () => {
+    const val = writeTextEl.value.trim();
+    if(!val) return;
+    pendingText = val;
+    startPause('write');
+  });
+  document.getElementById('writePauseChange').addEventListener('click', () => {
+    document.getElementById('settingsOverlay').hidden = false;
+  });
+
+  // ---- Swipe guard ----
+  document.getElementById('swipeStart').addEventListener('click', () => startPause('swipe'));
+
+  // ---- Pause overlay controls ----
+  document.getElementById('pauseSkip').addEventListener('click', goToDecision);
+  document.getElementById('pauseCancel').addEventListener('click', closePauseOverlay);
+  document.getElementById('decisionKeep').addEventListener('click', () => handleDecision('keep'));
+  document.getElementById('decisionAct').addEventListener('click', () => handleDecision('act'));
+
+  // ---- Drawer removal (tap twice to confirm) ----
+  const pendingRemove = new Set();
+  document.getElementById('drawerList').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-remove]');
+    if(!btn) return;
+    const id = btn.dataset.remove;
+    if(pendingRemove.has(id)){
+      state.writeEntries = state.writeEntries.filter(x => x.id !== id);
+      pendingRemove.delete(id);
+      save();
+      renderDrawer();
+    } else {
+      pendingRemove.add(id);
+      btn.textContent = 'Tap again to remove';
+      setTimeout(() => {
+        if(pendingRemove.has(id)){ pendingRemove.delete(id); btn.textContent = 'Remove'; }
+      }, 3000);
+    }
+  });
+
+  // ---- Shield: add / toggle / remove ----
+  document.getElementById('shieldAdd').addEventListener('click', () => {
+    const nameInput = document.getElementById('shieldName');
+    const platformSelect = document.getElementById('shieldPlatform');
+    const name = nameInput.value.trim();
+    if(!name) return;
+    state.shieldList.push({ id: genId(), name, platform: platformSelect.value, muted: false });
+    nameInput.value = '';
+    save();
+    renderShield();
+  });
+  document.getElementById('muteList').addEventListener('change', (e) => {
+    const cb = e.target.closest('[data-toggle]');
+    if(!cb) return;
+    const item = state.shieldList.find(x => x.id === cb.dataset.toggle);
+    if(item){ item.muted = cb.checked; save(); }
+  });
+  const pendingRemoveShield = new Set();
+  document.getElementById('muteList').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-removeshield]');
+    if(!btn) return;
+    const id = btn.dataset.removeshield;
+    if(pendingRemoveShield.has(id)){
+      state.shieldList = state.shieldList.filter(x => x.id !== id);
+      pendingRemoveShield.delete(id);
+      save();
+      renderShield();
+    } else {
+      pendingRemoveShield.add(id);
+      btn.textContent = 'Tap again';
+      setTimeout(() => {
+        if(pendingRemoveShield.has(id)){ pendingRemoveShield.delete(id); btn.textContent = 'Remove'; }
+      }, 3000);
+    }
+  });
+  document.getElementById('tipToggle').addEventListener('click', () => {
+    const body = document.getElementById('tipBody');
+    body.hidden = !body.hidden;
+  });
+
+  // ---- Tabs ----
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---- Settings overlay ----
+  document.getElementById('gearBtn').addEventListener('click', () => { document.getElementById('settingsOverlay').hidden = false; });
+  document.getElementById('settingsClose').addEventListener('click', () => { document.getElementById('settingsOverlay').hidden = true; });
+  document.querySelectorAll('[data-writepause]').forEach(b => {
+    b.addEventListener('click', () => {
+      state.settings.writePauseMin = Number(b.dataset.writepause);
+      save();
+      renderSettingsUI();
+    });
+  });
+  document.querySelectorAll('[data-swipepause]').forEach(b => {
+    b.addEventListener('click', () => {
+      state.settings.swipePauseMin = Number(b.dataset.swipepause);
+      save();
+      renderSettingsUI();
+    });
+  });
+  let clearPending = false;
+  document.getElementById('clearData').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    if(clearPending){
+      state = defaultState();
+      save();
+      renderAll();
+      btn.textContent = 'Clear all data';
+      clearPending = false;
+      document.getElementById('settingsOverlay').hidden = true;
+      toast('Everything cleared.');
+    } else {
+      clearPending = true;
+      btn.textContent = 'Tap again to erase everything';
+      setTimeout(() => {
+        if(clearPending){ clearPending = false; btn.textContent = 'Clear all data'; }
+      }, 3500);
+    }
+  });
+
+  // ---- Init ----
+  await loadState();
+  document.getElementById('loading').hidden = true;
+  document.getElementById('app').hidden = false;
+  addPerforation(document.getElementById('postmarkRing'), 28, 68);
+  updateWriteButton();
+  renderAll();
+})();
+</script>
+</body>
+</html>
